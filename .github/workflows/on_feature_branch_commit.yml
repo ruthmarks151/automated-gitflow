@@ -28,10 +28,10 @@ jobs:
             github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `${number} - ${issueResp["name"]}`,
+              title: `${issueResp["data"]["number"]} - ${issueResp["data"]["title"]}`,
               head: "${{ github.ref }}",
               base: branchType === "hotfix" ? "refs/heads/main" : "refs/heads/develop",
-              body: issueResp["body"],
+              body: issueResp["data"]["body"],
               draft: true,
-              issue: number
+              issue: issueResp["data"]["number"]
             });
