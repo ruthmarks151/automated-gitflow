@@ -1,0 +1,33 @@
+on:
+  push:
+    branches: 
+    - 'main'
+
+jobs:
+  create_pr_for_feature_push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v5
+        with:
+          script: |
+          
+            const shaResp = await github.rest.git.getRef({ 
+              owner: context.repo.owner, 
+              repo: context.repo.repo,
+              ref: 'heads/develop',
+            })
+            
+            console.log(`shaResp = ${JSON.stringify(shaResp)}`)
+            ////////
+            
+            if( shaResp["data"]["sha"] != ){
+              github.rest.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `Master Backmerge ${new Date().toISOString().replace("T", " ").substr(0, 16)}`,
+                head: "refs/heads/main",
+                base: "refs/heads/develop",
+                body: "Changes have been made on main that aren't reflected on develop",
+                draft: false,
+              });
+            }
