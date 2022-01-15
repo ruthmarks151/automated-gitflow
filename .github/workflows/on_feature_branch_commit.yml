@@ -13,7 +13,8 @@ jobs:
           script: |
             // ref:	The full git ref that was pushed. Example: refs/heads/feature/123/do-the-thing
             const [refs, heads, branchType, number, ...name] = "${{ github.event.payload.ref }}".split("/")
-            
+            console.log("${{ github.event.payload.ref }}")
+            console.log(`${branchType}, issue ${number}`)
             const issueResp = await github.rest.issues.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
