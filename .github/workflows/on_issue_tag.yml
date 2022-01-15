@@ -11,7 +11,7 @@ jobs:
         if: ${{ ( github.event.label.name == 'in progress' || github.event.label.name == 'hotfix' ) && !github.event.issue.pull_request }}
         with:
           script: |
-            const baseRef = "${{ github.event.label.name == 'hotfix' && 'refs/heads/main' || 'refs/heads/develop' }}"
+            const baseRef = "${{ github.event.label.name == 'hotfix' && 'heads/main' || 'heads/develop' }}"
             const shaResp = await github.rest.git.getRef({ 
               owner: context.repo.owner, 
               repo: context.repo.repo,
@@ -32,7 +32,7 @@ jobs:
               repo: context.repo.repo,
               title: "${{ github.event.issue.number }} ${{ github.event.issue.title }}",
               head: newBranchRef,
-              base: baseRef,
+              base: `refs/${baseRef}`,
               body: "${{ github.event.issue.body }}",
               draft: true,
             });
