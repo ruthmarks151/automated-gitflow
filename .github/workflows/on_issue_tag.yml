@@ -27,15 +27,6 @@ jobs:
               ref: newBranchRef,
               sha: shaResp["data"]["object"]["sha"],
             })
-            github.rest.pulls.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: "${{ github.event.issue.number }} ${{ github.event.issue.title }}",
-              head: newBranchRef,
-              base: `refs/${baseRef}`,
-              body: "${{ github.event.issue.body }}",
-              draft: true,
-            });
 
 
 
