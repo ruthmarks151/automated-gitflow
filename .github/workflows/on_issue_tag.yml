@@ -20,5 +20,5 @@ jobs:
                   owner: context.repo.owner, 
                   repo: context.repo.repo,
                   ref: "heads/develop",
-                });,
+                }),
             });
