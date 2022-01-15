@@ -1,6 +1,6 @@
 on:
   pull_request:
-    types: [ created ] 
+    types: [ created, reopened ] 
 
 jobs:
   create_pr_for_feature_push:
