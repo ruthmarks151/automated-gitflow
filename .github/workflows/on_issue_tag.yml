@@ -1,0 +1,34 @@
+on:
+  issues:
+    types:
+      - labeled
+
+jobs:
+  create_branch_for_ticket:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v5
+        if: ${{ ( github.event.label.name == 'in progress' || github.event.label.name == 'hotfix' ) && !github.event.issue.pull_request }}
+        with:
+          script: |
+            const baseRef = "${{ github.event.label.name == 'hotfix' && 'heads/main' || 'heads/develop' }}"
+            const shaResp = await github.rest.git.getRef({ 
+              owner: context.repo.owner, 
+              repo: context.repo.repo,
+              ref: baseRef,
+            })
+            console.log(`shaResp = ${shaResp}`)
+            const branchPrefix = "${{ github.event.label.name == 'hotfix' && 'hotfix/' || 'feature/' }}"
+            const newBranchRef = `refs/heads/${branchPrefix}${{ github.event.issue.number }}/${ "${{ github.event.issue.title }}".toLowerCase().replace(/[\.\~\^\:\t/\\]/g, "").split(/\W+/).join("-")}`
+            console.log(`newBranchRef = ${newBranchRef}`)
+            const newRefResp = await github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: newBranchRef,
+              sha: shaResp["data"]["object"]["sha"],
+            })
+
+
+
+
+

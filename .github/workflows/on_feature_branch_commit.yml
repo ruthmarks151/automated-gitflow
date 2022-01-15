@@ -1,0 +1,33 @@
+on:
+  push:
+    branches: 
+    - 'feature/**'
+    - 'hotfix/**'
+
+jobs:
+  create_pr_for_feature_push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v5
+        with:
+          script: |
+            const [branchType, number, ...name] = .split("/")
+            
+            const issueResp = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: number,
+            });
+            
+            console.log(`issueResp = ${issueResp}`)
+            
+            github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `${number} - ${issueResp.name}`,
+              head: newBranchRef,
+              base: branchType === "hotfix" ? "refs/main" : "refs/develop",
+              body: issueResp["body"],
+              draft: true,
+              issue: number
+            });
