@@ -27,10 +27,10 @@ jobs:
               matchingFeatureBranchesPromise,
               matchingHotfixBranchesPromise
             ]).then((featureResp, hotfixResp) => {
-              console.log(`featureResp = ${featureResp}`)
-              console.log(`hotfixResp = ${hotfixResp}`)
+              console.log(`featureResp = ${JSON.stringify(featureResp)}`)
+              console.log(`hotfixResp = ${JSON.stringify(hotfixResp)}`)
               
-              return (featureResp["data"].length || hotfixResp["data"].length 
+              return (featureResp.length || hotfixResp.length 
                         ? "Branch exists"
                         : false
                       )
