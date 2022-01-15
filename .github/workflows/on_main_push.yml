@@ -4,13 +4,12 @@ on:
     - 'main'
 
 jobs:
-  create_pr_for_feature_push:
+  create_pr_for_main_push:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v5
         with:
           script: |
-          
             const shaResp = await github.rest.git.getRef({ 
               owner: context.repo.owner, 
               repo: context.repo.repo,
@@ -20,7 +19,7 @@ jobs:
             console.log(`shaResp = ${JSON.stringify(shaResp)}`)
             ////////
             
-            if( shaResp["data"]["sha"] != "${{github.sha}}" ){
+            if( shaResp["data"]["object"]["sha"] != "${{github.sha}}" ){
               github.rest.pulls.create({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
