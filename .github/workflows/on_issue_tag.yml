@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v5
+        id: "identify_branches"
         if: ${{ ( github.event.label.name == 'in progress' || github.event.label.name == 'hotfix' ) && !github.event.issue.pull_request }}
         with:
           script: |
@@ -38,8 +39,10 @@ jobs:
             
             
       - uses: actions/github-script@v5
-        if: ${{ !steps.set-result.outputs.result }}
+        id: create_branch
+        if: ${{ !steps.identify_branches.outputs.result }}
         with:
+          result-encoding: string
           script: |
             const baseRef = "${{ github.event.label.name == 'hotfix' && 'heads/main' || 'heads/develop' }}"
             
@@ -49,7 +52,7 @@ jobs:
               ref: baseRef,
             })
 
-            console.log(`shaResp = ${shaResp}`)
+            console.log(`shaResp = ${JSON.stringify(shaResp)}`)
             const branchPrefix = "${{ github.event.label.name == 'hotfix' && 'hotfix/' || 'feature/' }}"
             const newBranchRef = `refs/heads/${branchPrefix}${{ github.event.issue.number }}/${ "${{ github.event.issue.title }}".toLowerCase().replace(/[\.\~\^\:\t/\\]/g, "").split(/\W+/).join("-")}`
             console.log(`newBranchRef = ${newBranchRef}`)
@@ -59,8 +62,19 @@ jobs:
               ref: newBranchRef,
               sha: shaResp["data"]["object"]["sha"],
             })
+            console.log(`newRefResp = ${JSON.stringify(newRefResp)}`)
+            return newRefResp["ref"]
 
-
+      - uses: actions/github-script@v5
+        if: ${{ steps.create_branch.outputs.result }}
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: "Branch created https://github.com/${context.repo.owner}/${context.repo.repo}/${{ !steps.create_branch.outputs.result }}".replace("refs/heads/", "")
+            })
 
 
 
