@@ -12,8 +12,10 @@ jobs:
         run: echo "$GITHUB_CONTEXT"
       
       - uses: actions/github-script@v5
+        id: update_pr
         if: ${{ (github.event.pull_request.base.ref == 'develop' ||  github.event.pull_request.base.ref == 'main') && (startsWith(github.event.pull_request.head.ref, 'feature/') || startsWith(github.event.pull_request.head.ref, 'hotfix/') ) }}
         with:
+          result-encoding: string
           script: |
             const [branchType, number, ...name] = "${{ github.event.pull_request.head.ref }}".split("/")
             console.log(`${branchType}, issue ${number}`)
@@ -29,6 +31,23 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: "${{ github.event.number }}",
-              body: issueResp["data"]["body"] + "\n\n ${{ github.event.pull_request.body }}",
+              body: (
+                "${{ github.event.pull_request.body }}\n\n" +
+                `## [Issue #${number}](https://github.com/ryanmarks/automated-gitflow/issues/${number})\n\n` +
+                issueResp["data"]["body"]
+              ),
               issue: issueResp["data"]["number"] // No title needed when an issue gets linked
             });
+            
+            return number
+
+      - uses: actions/github-script@v5
+        with:
+          result-encoding: string
+          script: |
+            github.rest.issues.createComment({
+              issue_number: ${{ steps.update_pr.outputs.result }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `PR created: https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${{ github.event.number }}`
+            })
