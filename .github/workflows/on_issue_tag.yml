@@ -11,12 +11,44 @@ jobs:
         if: ${{ ( github.event.label.name == 'in progress' || github.event.label.name == 'hotfix' ) && !github.event.issue.pull_request }}
         with:
           script: |
+            const matchingFeatureBranchesPromise = github.rest.git.listMatchingRefs({
+              owner: context.repo.owner, 
+              repo: context.repo.repo,
+              ref: "heads/feature/${{ github.event.issue.number }}",
+            });
+            
+            const matchingHotfixBranchesPromise = github.rest.git.listMatchingRefs({
+              owner: context.repo.owner, 
+              repo: context.repo.repo,
+              ref: "heads/hotfix/${{ github.event.issue.number }}",
+            });
+            
+            const branchExists = Promise.all([
+              matchingFeatureBranchesPromise,
+              matchingHotfixBranchesPromise
+            ]).then((featureResp, hotfixResp) => {
+              console.log(`featureResp = ${featureResp}`)
+              console.log(`hotfixResp = ${hotfixResp}`)
+              
+              return (featureResp["data"].length || hotfixResp["data"].length 
+                        ? "Branch exists"
+                        : false
+                      )
+            })
+            
+            
+      - uses: actions/github-script@v5
+        if: ${{ !steps.set-result.outputs.result }}
+        with:
+          script: |
             const baseRef = "${{ github.event.label.name == 'hotfix' && 'heads/main' || 'heads/develop' }}"
+            
             const shaResp = await github.rest.git.getRef({ 
               owner: context.repo.owner, 
               repo: context.repo.repo,
               ref: baseRef,
             })
+
             console.log(`shaResp = ${shaResp}`)
             const branchPrefix = "${{ github.event.label.name == 'hotfix' && 'hotfix/' || 'feature/' }}"
             const newBranchRef = `refs/heads/${branchPrefix}${{ github.event.issue.number }}/${ "${{ github.event.issue.title }}".toLowerCase().replace(/[\.\~\^\:\t/\\]/g, "").split(/\W+/).join("-")}`
