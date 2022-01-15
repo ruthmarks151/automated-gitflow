@@ -15,7 +15,7 @@ jobs:
       - uses: actions/github-script@v5
         with:
           script: |
-            const [branchType, number, ...name] = "${{ github.event.ref_name }}".split("/")
+            const [branchType, number, ...name] = "${{ github.ref_name }}".split("/")
             console.log(`${branchType}, issue ${number}`)
             const issueResp = await github.rest.issues.get({
               owner: context.repo.owner,
