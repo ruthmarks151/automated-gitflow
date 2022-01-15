@@ -16,7 +16,7 @@ jobs:
               repo: context.repo.repo,
               ref: `refs/heads/${{ github.event.issue.number }}-${ "${{ github.event.issue.title }}".toLowerCase().replace(/[\.\~\^\:\t/\\]/g, "").split(/\W+/).join("-")}`,
               sha: (
-                github.rest.git.getRef({ 
+                await github.rest.git.getRef({ 
                   owner: context.repo.owner, 
                   repo: context.repo.repo,
                   ref: "heads/develop",
