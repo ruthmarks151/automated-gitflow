@@ -12,7 +12,7 @@ jobs:
         run: echo "$GITHUB_CONTEXT"
       
       - uses: actions/github-script@v5
-        if: ${{ (github.event.base == "develop" ||  github.event.base == "main") && (startswith(github.event.headRefName, "feature/") || startswith(github.event.headRefName, "hotfix/") ) }}
+        if: ${{ (github.event.baseRefName == "develop" ||  github.event.baseRefName == "main") && (startswith(github.event.headRefName, "feature/") || startswith(github.event.headRefName, "hotfix/") ) }}
         with:
           script: |
             const [branchType, number, ...name] = "${{ github.event.headRefName }}".split("/")
