@@ -1,0 +1,24 @@
+on:
+  issue:
+    types:
+      - labeled
+
+jobs:
+  create_branch_for_ticket:
+    if: ${{ github.event.label.name == 'in progress' && !github.event.issue.pull_request }}
+    uses: actions/github-script@v5
+    env:
+      TICKET_ID: ${{ github.event.issue.number }}
+    with:
+      script: |
+        github.rest.git.createRef({
+          owner: "${{ context.repo.owner }}",
+          repo: "${{ context.repo.repo }}",
+          ref: `refs/heads/${{env.TICKET_ID}}/${{ github.event.issue }}/${ "${{ github.event.issue.title }}".replace(/[\.\~\^\:\t/\\]/g, "").split(/\W+/).join("-") }`,
+          sha: (
+            octokit.rest.git.getRef({ 
+              owner: "${{ context.repo.owner }}", 
+              repo: "${{ context.repo.repo }}",
+              ref: "heads/develop",
+            });,
+        });
