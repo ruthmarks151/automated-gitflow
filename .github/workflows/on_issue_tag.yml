@@ -1,20 +1,18 @@
 on:
-  issue:
+  issues:
     types:
       - labeled
 
 jobs:
   create_branch_for_ticket:
-    if: ${{ github.event.label.name == 'in progress' && !github.event.issue.pull_request }}
     uses: actions/github-script@v5
-    env:
-      TICKET_ID: ${{ github.event.issue.number }}
+    if: ${{ github.event.label.name == 'in progress' && !github.event.issue.pull_request }}
     with:
       script: |
         github.rest.git.createRef({
           owner: "${{ context.repo.owner }}",
           repo: "${{ context.repo.repo }}",
-          ref: `refs/heads/${{env.TICKET_ID}}/${{ github.event.issue }}/${ "${{ github.event.issue.title }}".replace(/[\.\~\^\:\t/\\]/g, "").split(/\W+/).join("-") }`,
+          ref: `refs/heads/${{ github.event.issue.number }}/${{ github.event.issue }}/${ "${{ github.event.issue.title }}".replace(/[\.\~\^\:\t/\\]/g, "").split(/\W+/).join("-") }`,
           sha: (
             octokit.rest.git.getRef({ 
               owner: "${{ context.repo.owner }}", 
