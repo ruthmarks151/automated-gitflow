@@ -14,7 +14,7 @@ jobs:
             github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: `refs/heads/${{ github.event.issue.number }}-${ "${{ github.event.issue.title }}".toLowerCase().replace(/[\.\~\^\:\t/\\]/g, "").split(/\W+/).join("-") `,
+              ref: `refs/heads/${{ github.event.issue.number }}-${ "${{ github.event.issue.title }}".toLowerCase().replace(/[\.\~\^\:\t/\\]/g, "").split(/\W+/).join("-")}`,
               sha: (
                 octokit.rest.git.getRef({ 
                   owner: context.repo.owner, 
