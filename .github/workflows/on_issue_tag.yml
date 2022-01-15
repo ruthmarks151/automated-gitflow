@@ -14,13 +14,13 @@ jobs:
             const matchingFeatureBranchesPromise = github.rest.git.listMatchingRefs({
               owner: context.repo.owner, 
               repo: context.repo.repo,
-              ref: "heads/feature/${{ github.event.issue.number }}",
+              ref: "heads/feature/${{ github.event.issue.number }}/",
             });
             
             const matchingHotfixBranchesPromise = github.rest.git.listMatchingRefs({
               owner: context.repo.owner, 
               repo: context.repo.repo,
-              ref: "heads/hotfix/${{ github.event.issue.number }}",
+              ref: "heads/hotfix/${{ github.event.issue.number }}/",
             });
             
             const branchExists = Promise.all([
@@ -30,7 +30,7 @@ jobs:
               console.log(`featureResp = ${JSON.stringify(featureResp)}`)
               console.log(`hotfixResp = ${JSON.stringify(hotfixResp)}`)
               
-              return (featureResp.length || hotfixResp.length 
+              return (featureResp || hotfixResp 
                         ? "Branch exists"
                         : false
                       )
