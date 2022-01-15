@@ -12,13 +12,13 @@ jobs:
         with:
           script: |
             github.rest.git.createRef({
-              owner: "${{ context.repo.owner }}",
-              repo: "${{ context.repo.repo }}",
+              owner: context.repo.owner,
+              repo: context.repo.repo,
               ref: `refs/heads/${{ github.event.issue.number }}/${{ github.event.issue }}/${ "${{ github.event.issue.title }}".replace(/[\.\~\^\:\t/\\]/g, "").split(/\W+/).join("-") }`,
               sha: (
                 octokit.rest.git.getRef({ 
-                  owner: "${{ context.repo.owner }}", 
-                  repo: "${{ context.repo.repo }}",
+                  owner: context.repo.owner, 
+                  repo: context.repo.repo,
                   ref: "heads/develop",
                 });,
             });
