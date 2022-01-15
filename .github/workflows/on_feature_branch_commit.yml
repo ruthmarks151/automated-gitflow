@@ -8,27 +8,30 @@ jobs:
   create_pr_for_feature_push:
     runs-on: ubuntu-latest
     steps:
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
       - uses: actions/github-script@v5
         with:
           script: |
-            // ref:	The full git ref that was pushed. Example: refs/heads/feature/123/do-the-thing
-            const [refs, heads, branchType, number, ...name] = "${{ github.event.payload.ref }}".split("/")
-            
+            const [branchType, number, ...name] = "${{ github.ref_name }}".split("/")
+            console.log(`${branchType}, issue ${number}`)
             const issueResp = await github.rest.issues.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: number,
             });
             
-            console.log(`issueResp = ${issueResp}`)
+            console.log(`issueResp = ${JSON.stringify(issueResp)}`)
             
             github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `${number} - ${issueResp["name"]}`,
-              head: newBranchRef,
+              // title: `${issueResp["data"]["number"]} - ${issueResp["data"]["title"]}`,
+              head: "${{ github.ref }}",
               base: branchType === "hotfix" ? "refs/heads/main" : "refs/heads/develop",
-              body: issueResp["body"],
+              body: issueResp["data"]["body"],
               draft: true,
-              issue: number
+              issue: issueResp["data"]["number"] // No title needed when an issue gets linked
             });
