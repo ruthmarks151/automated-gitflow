@@ -18,8 +18,8 @@ jobs:
               ref: baseRef,
             })
             console.log(`shaResp = ${shaResp}`)
-            const branchPrefix = "${{ github.event.label.name == 'hotfix' && 'hotfix-' || 'feature' }}"
-            const newBranchRef = `refs/heads/${branchPrefix}${{ github.event.issue.number }}-${ "${{ github.event.issue.title }}".toLowerCase().replace(/[\.\~\^\:\t/\\]/g, "").split(/\W+/).join("-")}`
+            const branchPrefix = "${{ github.event.label.name == 'hotfix' && 'hotfix/' || 'feature/' }}"
+            const newBranchRef = `refs/heads/${branchPrefix}${{ github.event.issue.number }}/${ "${{ github.event.issue.title }}".toLowerCase().replace(/[\.\~\^\:\t/\\]/g, "").split(/\W+/).join("-")}`
             console.log(`newBranchRef = ${newBranchRef}`)
             const newRefResp = await github.rest.git.createRef({
               owner: context.repo.owner,
