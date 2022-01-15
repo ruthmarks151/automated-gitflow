@@ -23,13 +23,13 @@ jobs:
               issue_number: number,
             });
             
-            console.log(`issueResp = ${issueResp}`)
+            console.log(`issueResp = ${JSON.stringify(issueResp)}`)
             
             github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: `${number} - ${issueResp["name"]}`,
-              head: newBranchRef,
+              head: "${{ github.ref }}",
               base: branchType === "hotfix" ? "refs/heads/main" : "refs/heads/develop",
               body: issueResp["body"],
               draft: true,
