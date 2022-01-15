@@ -11,7 +11,8 @@ jobs:
       - uses: actions/github-script@v5
         with:
           script: |
-            const [branchType, number, ...name] = .split("/")
+            // ref:	The full git ref that was pushed. Example: refs/heads/feature/123/do-the-thing
+            const [refs, heads, branchType, number, ...name] = "${{ github.event.payload.ref }}".split("/")
             
             const issueResp = await github.rest.issues.get({
               owner: context.repo.owner,
@@ -24,9 +25,9 @@ jobs:
             github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `${number} - ${issueResp.name}`,
+              title: `${number} - ${issueResp["name"]}`,
               head: newBranchRef,
-              base: branchType === "hotfix" ? "refs/main" : "refs/develop",
+              base: branchType === "hotfix" ? "refs/heads/main" : "refs/heads/develop",
               body: issueResp["body"],
               draft: true,
               issue: number
