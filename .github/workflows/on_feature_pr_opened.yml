@@ -1,8 +1,6 @@
 on:
-  push:
-    branches: 
-    - 'feature/**'
-    - 'hotfix/**'
+  pull_request:
+    types: [ created, reopened ] 
 
 jobs:
   create_pr_for_feature_push:
@@ -12,10 +10,12 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: echo "$GITHUB_CONTEXT"
+      
       - uses: actions/github-script@v5
+        if: ${{ (github.event.base == "develop" ||  github.event.base == "main") && (startswith(github.event.headRefName, "feature/") || startswith(github.event.headRefName, "hotfix/") ) }}
         with:
           script: |
-            const [branchType, number, ...name] = "${{ github.ref_name }}".split("/")
+            const [branchType, number, ...name] = "${{ github.event.headRefName }}".split("/")
             console.log(`${branchType}, issue ${number}`)
             const issueResp = await github.rest.issues.get({
               owner: context.repo.owner,
@@ -25,13 +25,10 @@ jobs:
             
             console.log(`issueResp = ${JSON.stringify(issueResp)}`)
             
-            github.rest.pulls.create({
+            github.rest.pulls.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              // title: `${issueResp["data"]["number"]} - ${issueResp["data"]["title"]}`,
-              head: "${{ github.ref }}",
-              base: branchType === "hotfix" ? "refs/heads/main" : "refs/heads/develop",
-              body: issueResp["data"]["body"],
-              draft: true,
+              pull_number: "${{ github.event.pull_number }}",
+              body: issueResp["data"]["body"] + "\n\n ${{ github.event.body }}",
               issue: issueResp["data"]["number"] // No title needed when an issue gets linked
             });
