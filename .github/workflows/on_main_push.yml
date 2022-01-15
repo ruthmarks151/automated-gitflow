@@ -20,7 +20,7 @@ jobs:
             console.log(`shaResp = ${JSON.stringify(shaResp)}`)
             ////////
             
-            if( shaResp["data"]["sha"] != ){
+            if( shaResp["data"]["sha"] != "${{github.sha}}" ){
               github.rest.pulls.create({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
