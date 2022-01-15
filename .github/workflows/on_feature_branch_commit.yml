@@ -15,9 +15,7 @@ jobs:
       - uses: actions/github-script@v5
         with:
           script: |
-            // ref:	The full git ref that was pushed. Example: refs/heads/feature/123/do-the-thing
-            const [refs, heads, branchType, number, ...name] = "${{ github.event.payload.ref }}".split("/")
-            console.log("${{ github.event.payload.ref }}")
+            const [branchType, number, ...name] = "${{ github.event.ref_name }}".split("/")
             console.log(`${branchType}, issue ${number}`)
             const issueResp = await github.rest.issues.get({
               owner: context.repo.owner,
