@@ -63,7 +63,7 @@ jobs:
               sha: shaResp["data"]["object"]["sha"],
             })
             console.log(`newRefResp = ${JSON.stringify(newRefResp)}`)
-            return newRefResp["ref"]
+            return newRefResp["data"]["ref"]
 
       - uses: actions/github-script@v5
         if: ${{ steps.create_branch.outputs.result }}
@@ -73,7 +73,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `Branch created: https://github.com/${context.repo.owner}/${context.repo.repo}/${{ steps.create_branch.outputs.result }}`.replace("refs/heads/", "")
+              body: `Branch created: https://github.com/${context.repo.owner}/${context.repo.repo}/tree/${{ steps.create_branch.outputs.result }}`.replace("refs/heads/", "")
             })
 
 
