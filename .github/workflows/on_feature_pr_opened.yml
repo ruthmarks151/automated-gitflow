@@ -12,10 +12,10 @@ jobs:
         run: echo "$GITHUB_CONTEXT"
       
       - uses: actions/github-script@v5
-        if: ${{ (github.event.baseRefName == 'develop' ||  github.event.baseRefName == 'main') && (startsWith(github.event.headRefName, 'feature/') || startsWith(github.event.headRefName, 'hotfix/') ) }}
+        if: ${{ (github.event.base.ref == 'develop' ||  github.event.base.ref == 'main') && (startsWith(github.event.head.ref, 'feature/') || startsWith(github.event.head.ref, 'hotfix/') ) }}
         with:
           script: |
-            const [branchType, number, ...name] = "${{ github.event.headRefName }}".split("/")
+            const [branchType, number, ...name] = "${{ github.event.head.ref }}".split("/")
             console.log(`${branchType}, issue ${number}`)
             const issueResp = await github.rest.issues.get({
               owner: context.repo.owner,
@@ -28,7 +28,7 @@ jobs:
             github.rest.pulls.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: "${{ github.event.pull_number }}",
+              pull_number: "${{ github.event.number }}",
               body: issueResp["data"]["body"] + "\n\n ${{ github.event.body }}",
               issue: issueResp["data"]["number"] // No title needed when an issue gets linked
             });
