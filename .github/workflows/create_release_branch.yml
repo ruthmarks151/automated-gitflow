@@ -13,6 +13,7 @@ jobs:
         run: echo "$GITHUB_CONTEXT"
             
       - uses: actions/github-script@v5
+        name: Cut branch
         id: cut_branch
         with:
           result-encoding: string
@@ -38,34 +39,33 @@ jobs:
             return newRefResp["data"]["ref"]
           
       - uses: actions/github-script@v5
+        name: Open PR
         id: open_pr
         with:
           result-encoding: string
           script: |
-            const shaResp = await github.rest.git.getRef({ 
+            const developResp = await github.rest.git.getRef({ 
               owner: context.repo.owner, 
               repo: context.repo.repo,
               ref: 'heads/develop',
             })
             
-            console.log(`shaResp = ${JSON.stringify(shaResp)}`)
-            //////// 
+            console.log(`developResp = ${JSON.stringify(developResp)}`)
             
-            if( shaResp["data"]["object"]["sha"] != "${{github.sha}}" ){
-              const prCreateResp = await github.rest.pulls.create({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                title: `Release ${new Date().toISOString().replace("T", " ").substr(0, 16)}`,
-                head: "${{ steps.cut_branch.outputs.result }}",
-                base: "refs/heads/main",
-                draft: false,
-              });
-              console.log(`prCreateResp = ${JSON.stringify(prCreateResp)}`)
-              return prCreateResp["data"]["number"]
-            }
-            return false
+            const prCreateResp = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Release ${new Date().toISOString().replace("T", " ").substr(0, 16)}`,
+              head: "${{ steps.cut_branch.outputs.result }}",
+              base: "refs/heads/main",
+              draft: false,
+            });
+            console.log(`prCreateResp = ${JSON.stringify(prCreateResp)}`)
+            return prCreateResp["data"]["number"]
+
       
       - uses: actions/github-script@v5
+        name: Identify included commits
         id: identify_included_commits
         if: ${{ steps.open_pr.outputs.result}}
         with:
@@ -91,9 +91,10 @@ jobs:
               }
             }
             console.log(`issues = ${ JSON.stringify(issues) }`)
-            return issues.map(({ commit }) => commit ))
+            return issues.map(({ commit }) => commit )
             
       - uses: actions/github-script@v5
+        name: Comment on included issues
         id: comment_on_included_issues
         if: ${{ steps.open_pr.outputs.result}}
         with:
@@ -119,8 +120,8 @@ jobs:
         with:
           result-encoding: string
           script: |
-            const commits = ${{ toJSON( steps.identify_included_commits.outputs.result ) }}
-            const itemString = commits.map((commmit) => { 
+            const commits = ${{ steps.identify_included_commits.outputs.result }}
+            const itemString = commits.map((commit) => { 
               const result = /^Merge pull request #(\d+) from ([^/]+)\/feature\/(\d+)\/(.*)/.exec(commit["message"])
               if (result) {
                 const [,pullNo, user, issueNo, issueBranch] = result
@@ -138,7 +139,7 @@ jobs:
             github.rest.pulls.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: "${{ github.event.number }}",
+              pull_number: "${{ steps.open_pr.outputs.result  }}",
               body: body,
             });
             
