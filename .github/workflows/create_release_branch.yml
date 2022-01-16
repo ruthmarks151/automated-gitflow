@@ -1,0 +1,137 @@
+name: Create Release Branch
+on:
+  workflow_dispatch:
+  
+
+jobs:
+  create_release_branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+            
+      - uses: actions/github-script@v5
+        id: cut_branch
+        with:
+          result-encoding: string
+          script:
+            const baseRef = 'heads/develop'
+            
+            const shaResp = await github.rest.git.getRef({ 
+              owner: context.repo.owner, 
+              repo: context.repo.repo,
+              ref: baseRef,
+            })
+            console.log(`shaResp = ${JSON.stringify(shaResp)}`)
+            
+            const newBranchRef = `refs/heads/release/${new Date().toISOString().replace(":", "-").substr(0, 16).replace("T", "-T-")}`
+            console.log(`newBranchRef = ${newBranchRef}`)
+            const newRefResp = await github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: newBranchRef,
+              sha: shaResp["data"]["object"]["sha"],
+            })
+            console.log(`newRefResp = ${JSON.stringify(newRefResp)}`)
+            return newRefResp["data"]["ref"]
+          
+      - uses: actions/github-script@v5
+        id: open_pr
+        with:
+          result-encoding: string
+          script:
+            const shaResp = await github.rest.git.getRef({ 
+              owner: context.repo.owner, 
+              repo: context.repo.repo,
+              ref: 'heads/develop',
+            })
+            
+            console.log(`shaResp = ${JSON.stringify(shaResp)}`)
+            ////////
+            
+            if( shaResp["data"]["object"]["sha"] != "${{github.sha}}" ){
+              const prCreateResp = await github.rest.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `Release ${new Date().toISOString().replace("T", " ").substr(0, 16)}`,
+                head: "${{ steps.create_branch.outputs.result }}",
+                base: "refs/heads/main",
+                draft: false,
+              });
+              console.log(`prCreateResp = ${JSON.stringify(prCreateResp)}`)
+              return prCreateResp["data"]["number"]
+            }
+            return false
+      
+      - uses: actions/github-script@v5
+        id: identify_included_issues
+        if: ${{ steps.open_pr.outputs.result}}
+        with:
+          script:
+            issues = []
+            let page = 0;
+            while (true){
+              const oldLen = issues.length
+              issues = [...issues, ...(
+                octokit.rest.pulls.listCommits({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: ${{ steps.open_pr.outputs.result }}:
+                  page
+                });
+              )]
+              page++
+              if (oldLen == issues.length) {
+                break
+              }
+            }
+            console.log(`issues = ${ JSON.stringify(issues) }`)
+            return issues
+            
+      - uses: actions/github-script@v5
+        id: comment_on_included_issues
+        with:
+          result-encoding: string
+          script:
+            for(issueNumber in ${{ toJSON(steps.identify_included_issues.outputs.result) }}){
+              github.rest.issues.createComment({
+                issue_number: issueNumber,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `Included in release branch: https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${{ github.event.number }}`
+              })
+            }
+
+      - uses: actions/github-script@v5
+        id: update_pr_body
+        with:
+          result-encoding: string
+          script:
+            const commits = ${{ toJSON( steps.identify_included_issues.outputs.result ) }}
+            const itemString = commits.map((commmit) => { 
+              const result = /^Merge pull request #(\d+) from ([^/]+)\/feature\/(\d+)\/(.*)/.exec(commit["commit"]["message"])
+              if (result) {
+                const [,pullNo, user, issueNo, issueBranch] = result
+                const issueName = issueBranch.split('-').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                const prLink = "https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${pullNo}"
+                const issueLink = "https://github.com/${context.repo.owner}/${context.repo.repo}/issues/${issueNo}"
+                const item = `- ${issueName} [PR#${pullNo}](${prLink}) [Issue #${issueNo}](${issueLink})`
+                return item
+              }
+              return null
+            }).filter(x => !!x).join('\n')
+
+            const body = `## Included Items\n${itemString}`
+            
+            github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: "${{ github.event.number }}",
+              body: body,
+              issue: issueResp["data"]["number"] // No title needed when an issue gets linked
+            });
+            
+            
+            
