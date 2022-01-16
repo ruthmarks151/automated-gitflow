@@ -1,3 +1,4 @@
+name: "On Feature/Hotfix PR opened: Populate description from issue"
 on:
   pull_request:
     types: [ created, reopened ] 
