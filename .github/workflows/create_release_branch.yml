@@ -121,7 +121,7 @@ jobs:
           result-encoding: string
           script: |
             const commits = ${{ steps.identify_included_commits.outputs.result }}
-            const itemString = commits.map((commmit) => { 
+            const itemString = commits.map((commit) => { 
               const result = /^Merge pull request #(\d+) from ([^/]+)\/feature\/(\d+)\/(.*)/.exec(commit["message"])
               if (result) {
                 const [,pullNo, user, issueNo, issueBranch] = result
