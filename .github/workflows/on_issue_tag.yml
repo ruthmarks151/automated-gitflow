@@ -1,3 +1,4 @@
+name: "On Issue Tagged with 'in progress' or 'hotfix': Create a branch
 on:
   issues:
     types:
