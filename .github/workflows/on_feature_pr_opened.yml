@@ -17,7 +17,7 @@ jobs:
         with:
           result-encoding: string
           script: |
-            const [branchType, number, ...name] = "${{ github.event.pull_request.head.ref }}".split("/")
+            const [branchType, number, ...name] = "${{ github.event.pull_request.head.ref }}".split("/") }}"
             console.log(`${branchType}, issue ${number}`)
             const issueResp = await github.rest.issues.get({
               owner: context.repo.owner,
