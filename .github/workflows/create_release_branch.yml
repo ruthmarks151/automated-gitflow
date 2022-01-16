@@ -66,7 +66,7 @@ jobs:
             return false
       
       - uses: actions/github-script@v5
-        id: identify_included_issues
+        id: identify_included_commits
         if: ${{ steps.open_pr.outputs.result}}
         with:
           script: |
@@ -91,24 +91,31 @@ jobs:
               }
             }
             console.log(`issues = ${ JSON.stringify(issues) }`)
-            return issues
+            return issues.map(({}) => ({}))
             
       - uses: actions/github-script@v5
         id: comment_on_included_issues
+        if: ${{ steps.open_pr.outputs.result}}
         with:
           result-encoding: string
           script: |
-            for(issueNumber in ${{ toJSON(steps.identify_included_issues.outputs.result) }}){
-              github.rest.issues.createComment({
-                issue_number: issueNumber,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: `Included in release branch: https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${{ github.event.number }}`
-              })
+            for(commit in ${{ steps.identify_included_commits.outputs.result }}){
+              
+              const result = /^Merge pull request #(\d+) from ([^/]+)\/feature\/(\d+)\/(.*)/.exec(commit["commit"]["message"])
+              if(result) {
+                const [,pullNo, user, issueNo, issueBranch] = result
+                github.rest.issues.createComment({
+                  issue_number: issueNo,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: `Included in release branch: https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${{ steps.open_pr.outputs.result  }}`
+                })
+              }
             }
 
       - uses: actions/github-script@v5
         id: update_pr_body
+        if: ${{ steps.open_pr.outputs.result}}
         with:
           result-encoding: string
           script: |
