@@ -86,7 +86,7 @@ jobs:
               
               issues = [...issues, ...(fetchedIssues["data"])]
               page++
-              if (oldLen == issues.length) {
+              if (oldLen == issues.length || page > 10) {
                 break
               }
             }
