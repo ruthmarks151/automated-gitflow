@@ -75,7 +75,7 @@ jobs:
             while (true){
               const oldLen = issues.length
               issues = [...issues, ...(
-                octokit.rest.pulls.listCommits({
+                github.rest.pulls.listCommits({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   pull_number: ${{ steps.open_pr.outputs.result }},
