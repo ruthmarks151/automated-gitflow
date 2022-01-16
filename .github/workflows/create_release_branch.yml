@@ -16,7 +16,7 @@ jobs:
         id: cut_branch
         with:
           result-encoding: string
-          script:
+          script: |
             const baseRef = 'heads/develop'
             
             const shaResp = await github.rest.git.getRef({ 
@@ -41,7 +41,7 @@ jobs:
         id: open_pr
         with:
           result-encoding: string
-          script:
+          script: |
             const shaResp = await github.rest.git.getRef({ 
               owner: context.repo.owner, 
               repo: context.repo.repo,
@@ -69,7 +69,7 @@ jobs:
         id: identify_included_issues
         if: ${{ steps.open_pr.outputs.result}}
         with:
-          script:
+          script: |
             issues = []
             let page = 0;
             while (true){
@@ -94,7 +94,7 @@ jobs:
         id: comment_on_included_issues
         with:
           result-encoding: string
-          script:
+          script: |
             for(issueNumber in ${{ toJSON(steps.identify_included_issues.outputs.result) }}){
               github.rest.issues.createComment({
                 issue_number: issueNumber,
@@ -108,7 +108,7 @@ jobs:
         id: update_pr_body
         with:
           result-encoding: string
-          script:
+          script: |
             const commits = ${{ toJSON( steps.identify_included_issues.outputs.result ) }}
             const itemString = commits.map((commmit) => { 
               const result = /^Merge pull request #(\d+) from ([^/]+)\/feature\/(\d+)\/(.*)/.exec(commit["commit"]["message"])
