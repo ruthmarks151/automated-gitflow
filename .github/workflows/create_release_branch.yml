@@ -49,7 +49,7 @@ jobs:
             })
             
             console.log(`shaResp = ${JSON.stringify(shaResp)}`)
-            ////////
+            //////// 
             
             if( shaResp["data"]["object"]["sha"] != "${{github.sha}}" ){
               const prCreateResp = await github.rest.pulls.create({
@@ -74,14 +74,17 @@ jobs:
             let page = 0;
             while (true){
               const oldLen = issues.length
-              issues = [...issues, ...(
-                await github.rest.pulls.listCommits({
+              
+              const fetchedIssues = await github.rest.pulls.listCommits({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   pull_number: ${{ steps.open_pr.outputs.result }},
                   page
                 })
-              )]
+                
+              console.log(`fetchedIssues = ${JSON.stringify(fetchedIssues)}`)
+              
+              issues = [...issues, ...(fetchedIssues["data"])]
               page++
               if (oldLen == issues.length) {
                 break
