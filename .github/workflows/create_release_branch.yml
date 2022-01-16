@@ -121,19 +121,18 @@ jobs:
           result-encoding: string
           script: |
             const commits = ${{ steps.identify_included_commits.outputs.result }}
-            const itemString = commits.map((commit) => { 
+            const itemString = [...new Set(commits.map((commit) => { 
               const result = /^Merge pull request #(\d+) from ([^/]+)\/feature\/(\d+)\/(.*)/.exec(commit["message"])
               if (result) {
                 const [,pullNo, user, issueNo, issueBranch] = result
                 const issueName = issueBranch.split('-').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-                const prLink = "https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${pullNo}"
-                const issueLink = "https://github.com/${context.repo.owner}/${context.repo.repo}/issues/${issueNo}"
+                const prLink = `https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${pullNo}`
+                const issueLink = `https://github.com/${context.repo.owner}/${context.repo.repo}/issues/${issueNo}`
                 const item = `- ${issueName} [PR#${pullNo}](${prLink}) [Issue #${issueNo}](${issueLink})`
                 return item
               }
               return null
-            }).filter(x => !!x).join('\n')
-
+            }).filter(x => !!x))].join('\n')
             const body = `## Included Items\n${itemString}`
             
             github.rest.pulls.update({
