@@ -80,7 +80,7 @@ jobs:
                   repo: context.repo.repo,
                   pull_number: ${{ steps.open_pr.outputs.result }},
                   page
-                });
+                })
               )]
               page++
               if (oldLen == issues.length) {
