@@ -44,28 +44,25 @@ jobs:
         with:
           result-encoding: string
           script: |
-            const shaResp = await github.rest.git.getRef({ 
+            const developResp = await github.rest.git.getRef({ 
               owner: context.repo.owner, 
               repo: context.repo.repo,
               ref: 'heads/develop',
             })
             
-            console.log(`shaResp = ${JSON.stringify(shaResp)}`)
-            //////// 
+            console.log(`developResp = ${JSON.stringify(developResp)}`)
             
-            if( shaResp["data"]["object"]["sha"] != "${{github.sha}}" ){
-              const prCreateResp = await github.rest.pulls.create({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                title: `Release ${new Date().toISOString().replace("T", " ").substr(0, 16)}`,
-                head: "${{ steps.cut_branch.outputs.result }}",
-                base: "refs/heads/main",
-                draft: false,
-              });
-              console.log(`prCreateResp = ${JSON.stringify(prCreateResp)}`)
-              return prCreateResp["data"]["number"]
-            }
-            return false
+            const prCreateResp = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Release ${new Date().toISOString().replace("T", " ").substr(0, 16)}`,
+              head: "${{ steps.cut_branch.outputs.result }}",
+              base: "refs/heads/main",
+              draft: false,
+            });
+            console.log(`prCreateResp = ${JSON.stringify(prCreateResp)}`)
+            return prCreateResp["data"]["number"]
+
       
       - uses: actions/github-script@v5
         name: Identify included commits
