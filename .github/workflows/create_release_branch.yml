@@ -56,7 +56,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 title: `Release ${new Date().toISOString().replace("T", " ").substr(0, 16)}`,
-                head: "${{ steps.create_branch.outputs.result }}",
+                head: "${{ steps.cut_branch.outputs.result }}",
                 base: "refs/heads/main",
                 draft: false,
               });
