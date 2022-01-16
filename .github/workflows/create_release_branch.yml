@@ -120,7 +120,7 @@ jobs:
         with:
           result-encoding: string
           script: |
-            const commits = ${{ toJSON( steps.identify_included_commits.outputs.result ) }}
+            const commits = ${{ steps.identify_included_commits.outputs.result }}
             const itemString = commits.map((commmit) => { 
               const result = /^Merge pull request #(\d+) from ([^/]+)\/feature\/(\d+)\/(.*)/.exec(commit["message"])
               if (result) {
